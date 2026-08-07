@@ -1,8 +1,10 @@
-"""Wake word dinleyici — 'Tony'. Sürekli, hafif (Vosk, kurulu).
+"""Wake-word listener — "Tony". Always on, and therefore has to be cheap.
 
-Neden Vosk: her zaman açık çalışacağı için ultra-hafif olmalı; Vosk zaten kurulu
-ve 0-Old'da kanıtlı. Komut STT'si (faster-whisper) ancak uyandıktan sonra çalışır.
-ponytail: openWakeWord'e özel 'Tony' modeli gerekirse yükseltme kancası burada.
+Why Vosk and not Whisper: this one runs every second the machine is awake, so it must
+stay tiny and CPU-only. Whisper is the opposite trade — accurate and expensive — so it
+is loaded only once the wake word has already been heard.
+
+ponytail: if "Tony" ever needs a purpose-trained detector, openWakeWord drops in here.
 """
 from __future__ import annotations
 import json
@@ -15,9 +17,10 @@ from . import audio_state
 
 
 def _wake_hit(text: str, wake_word: str) -> tuple[bool, str]:
-    """Metinde wake word var mı? Varsa (True, sonrasındaki komut) döner.
+    """Is the wake word in this text? If so, (True, whatever came after it).
 
-    Kelime-sınırı eşleşmesi — 0-Old'un düz substring'inden daha az yanlış tetik.
+    Matched on a word boundary, not as a substring: "antony" is not "tony", and a
+    plain substring test fires on every one of them.
     """
     words = text.lower().split()
     for i, w in enumerate(words):
@@ -31,20 +34,23 @@ class WakeListener:
         self.wake_word = cfg["wake_word"].lower()
         path = cfg.get("vosk_model_path")
         print("[wake] Loading Vosk model…")
-        # path verilmezse dil paketini indirir/yükler (ilk sefer ~40MB, internet).
+        # Without a path, Vosk downloads its language pack on first use (~40MB).
         self._model = vosk.Model(path) if path else vosk.Model(lang="en-us")
         self._q: queue.Queue[bytes] = queue.Queue()
         print(f"[wake] Ready. Waiting for '{self.wake_word}'.")
 
     def _callback(self, indata, frames, time_, status):
         if audio_state.is_speaking.is_set():
-            return  # TONY konuşuyor → kendini duymasın
+            return  # TONY is playing audio — do not let it hear itself
         self._q.put(bytes(indata))
 
     def wait_for_wake(self, interrupt=None) -> str:
-        """Wake word duyulana dek bloklar. Aynı cümledeki komutu (varsa) döner.
+        """Block until the wake word is heard. Returns the rest of that sentence.
 
-        `interrupt`: set edilirse (örn. hotkey) bekleme hemen "" döner — mic stream kapanır.
+        The trailing text is what makes "Tony, volume up" work in one breath.
+
+        `interrupt`: when set (the hotkey does this) the wait returns "" at once and
+        the microphone stream closes.
         """
         rec = vosk.KaldiRecognizer(self._model, 16000)
         while not self._q.empty():
@@ -69,9 +75,9 @@ class WakeListener:
 
 
 if __name__ == "__main__":
-    # ponytail self-check: wake eşleşme mantığı (ses donanımı gerektirmez)
+    # ponytail self-check: the matching logic, no audio hardware needed
     assert _wake_hit("hey tony open chrome", "tony") == (True, "open chrome")
     assert _wake_hit("tony", "tony") == (True, "")
-    assert _wake_hit("antony sang", "tony") == (False, "")   # substring değil, kelime
+    assert _wake_hit("antony sang", "tony") == (False, "")   # a word, not a substring
     assert _wake_hit("what is the weather", "tony") == (False, "")
     print("wake logic OK")

@@ -1,4 +1,4 @@
-"""Uygulama açma — Windows (2-Jarvis open_app.py'den port, İngilizce çıktı)."""
+"""Launch a Windows application by name, with aliases for how people say them."""
 from __future__ import annotations
 import os
 import shutil

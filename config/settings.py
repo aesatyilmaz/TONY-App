@@ -1,4 +1,8 @@
-"""TONY yapılandırması. Tek kaynak; config/settings.json ile üzerine yazılabilir."""
+"""Configuration. One source of defaults; config/settings.json overrides any of them.
+
+settings.json is gitignored — it is where personal values live (the dashboard URL, a
+Claude install path) so this file stays publishable.
+"""
 from __future__ import annotations
 import json
 from pathlib import Path
@@ -47,7 +51,7 @@ def load() -> dict:
     if _OVERRIDE.exists():
         try:
             cfg.update(json.loads(_OVERRIDE.read_text(encoding="utf-8")))
-        except Exception as e:  # bozuk JSON tüm sistemi düşürmesin
+        except Exception as e:  # a malformed JSON file must not take the app down
             print(f"[config] could not read settings.json, using defaults: {e}")
     return cfg
 

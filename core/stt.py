@@ -1,12 +1,15 @@
-"""Komut STT — faster-whisper (yerel, GPU). Uyandıktan SONRA çalışır.
+"""Command speech-to-text — faster-whisper, local, GPU if there is one.
 
-WhisperSTT sınıfı 1-Mark'ın ölü `core/stt.py`'sinden canlandırıldı (greedy, VAD).
-record_utterance: mikrofonu kaydeder, RMS ile sessizlik-bitişi yakalar, float32 döner.
+Runs only AFTER the wake word. That is the whole reason a model this size is
+affordable: it is loaded once and then idle until you actually say something.
+
+Decoding is greedy (beam_size=1, best_of=1) with VAD filtering — accuracy past that
+point is the fuzzy router's job, not the transcriber's.
 """
 from __future__ import annotations
 import os
-# torch + ctranslate2/onnxruntime aynı OpenMP runtime'ını yükler (Windows).
-# faster-whisper+torch stack'inin standart çözümü; import'lardan ÖNCE set edilmeli.
+# torch and ctranslate2/onnxruntime load the same OpenMP runtime on Windows, and the
+# second one to arrive aborts the process. Must be set BEFORE either is imported.
 os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 import queue
 
@@ -38,8 +41,8 @@ class WhisperSTT:
     def transcribe(self, audio: np.ndarray) -> str:
         segments, _ = self._model.transcribe(
             audio, language=self._language,
-            beam_size=1, best_of=1,             # greedy — hızlı
-            condition_on_previous_text=False,   # halüsinasyon yok
+            beam_size=1, best_of=1,             # greedy — fast
+            condition_on_previous_text=False,   # no hallucinated continuations
             vad_filter=True,
             vad_parameters={"min_silence_duration_ms": 300},
         )
@@ -50,7 +53,7 @@ def record_utterance(max_seconds: float, silence_seconds: float,
                      give_up_seconds: float | None = None) -> np.ndarray:
     """Mikrofonu kaydeder; `silence_seconds` sessizlikte veya `max_seconds`'te durur.
 
-    float32 mono 16kHz numpy dizisi döner (Whisper'ın beklediği format).
+    Returns float32 mono 16kHz — the format Whisper expects.
 
     `give_up_seconds`: if nobody has said anything at all by then, return empty
     immediately instead of holding the microphone for the full `max_seconds`. The
@@ -69,7 +72,7 @@ def record_utterance(max_seconds: float, silence_seconds: float,
     silent_blocks = 0
     max_blocks = int(max_seconds * SAMPLE_RATE / block)
     silence_limit = int(silence_seconds * SAMPLE_RATE / block)
-    threshold = 0.01  # RMS eşiği (float32 -1..1)
+    threshold = 0.01  # RMS threshold (float32, -1..1)
 
     print("[stt] 🔴 Recording command…")
     with sd.InputStream(samplerate=SAMPLE_RATE, blocksize=block, dtype="float32",
@@ -101,7 +104,7 @@ def record_utterance(max_seconds: float, silence_seconds: float,
 
 
 if __name__ == "__main__":
-    # ponytail self-check: kayıt tampon mantığı modelsiz doğrulanır
+    # ponytail self-check: the buffer contract, verified without loading a model
     a = np.zeros(0, dtype=np.float32)
     assert a.dtype == np.float32 and a.size == 0
     print("stt helper logic OK (model test in live gate)")

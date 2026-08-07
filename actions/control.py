@@ -1,12 +1,13 @@
-"""Computer-use: klavye / hotkey / medya / kaydırma (pyautogui, kurulu).
+"""Computer use: keys, hotkeys, media keys and scrolling (pyautogui).
 
-TONY'nin çekirdek gücü. Konuşmadan gelen tuş adları pyautogui adlarına eşlenir.
+TONY's core power. Key names as a person says them are mapped onto the names
+pyautogui expects — "windows", "escape" and "return" are not what it calls them.
 """
 from __future__ import annotations
 
 import pyautogui
 
-# Sesli komuttan gelebilecek adları pyautogui tuş adlarına çevir.
+# Spoken key names → pyautogui key names.
 _KEY_ALIASES = {
     "win": "winleft", "windows": "winleft", "cmd": "winleft", "super": "winleft",
     "control": "ctrl", "escape": "esc", "return": "enter", "delete": "del",

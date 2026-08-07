@@ -76,6 +76,16 @@ def motion_strip(t, name, values, pad=14):
     pm.save(str(OUT / f"{name}.png"))
 
 
+def _settle(t):
+    """Drive the pill's open/close reveal straight to its end without the wall clock.
+    setCurrentTime(duration) stops the animation at its end, and stopping is what emits
+    finished() — which is the only place the window is allowed to take its new size."""
+    from PySide6.QtCore import QAbstractAnimation
+    a = t._reveal_anim
+    if a.state() != QAbstractAnimation.Stopped:
+        a.setCurrentTime(a.duration())
+
+
 def main():
     app = QApplication.instance() or QApplication([])
     seed_fonts()
@@ -144,6 +154,25 @@ def main():
     bar.setValue(bar.maximum() // 2)
     app.processEvents()
     shot(t, "panel_scrolled", overlay=w)
+
+    # Vision mode: the pill carrying a real HUD frame, and the card that follows the
+    # mode. This is the one shape a still can actually explain — the panel IS the pill,
+    # not a second window next to it. The frame comes from render_vision's synthetic
+    # hand, so no camera is ever opened.
+    w.hide()
+    from tools.render_vision import build_scenes
+    t._view.set_frame(dict(build_scenes())["2-active-idle"])
+    t._set_vision(True)
+    _settle(t)
+    app.processEvents()
+    shot(t, "vision_pill")
+
+    import ui.info_window as iw
+    iw.vision_mode = lambda: True          # no child process here; the card asks the pill
+    v = InfoWindow(on_turn_off=lambda: None)
+    v.present()
+    app.processEvents()
+    shot(t, "vision_gestures", overlay=v)
 
     print("wrote:", *(p.name for p in sorted(OUT.glob("*.png"))))
 

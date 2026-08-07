@@ -1,12 +1,15 @@
-"""Mikrofon ile TTS arasında paylaşılan durum (echo-cancel el sıkışması).
+"""Shared state between the microphone and anything that plays audio.
 
-TONY konuşurken mikrofon kendini duymasın diye tek bir Event paylaşılır.
-0-Old'un `is_speaking_flag` desenini modül-global yerine tek yerde toplar.
+Nothing speaks in TONY today — there is no TTS — but both events survive because the
+wake listener and the recorder still honour them, and they are the seam a speaking
+TONY would need. One shared Event, not a flag per module: the point is that every
+microphone callback consults the same object.
 """
 import threading
 
-# TONY konuşurken set edilir → wake/kayıt callback'leri mikrofonu yok sayar.
+# Set while TONY is playing audio → the wake and recording callbacks drop what the
+# microphone hears, so it cannot answer itself.
 is_speaking = threading.Event()
 
-# TTS'i erkenden kesmek için (barge-in).
+# Cut playback early (barge-in).
 stop_speaking = threading.Event()

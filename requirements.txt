@@ -11,12 +11,18 @@ numpy>=1.26             # audio buffers
 rapidfuzz>=3.0          # fuzzy transcript -> command matching (no model, deterministic)
 pyautogui>=0.9.54       # hotkeys / media keys / scroll
 pycaw>=20240210         # exact master-volume control ("volume down 30" means 30)
+comtypes>=1.2           # COM plumbing pycaw sits on — actions/volume.py imports it
+                        # directly, so it is declared here rather than relied on as
+                        # somebody else's transitive dependency
+pyperclip>=1.8          # reads the selection for "search this" / "translate this" /
+                        # "research" (copy, read, restore what was on the clipboard)
 Pillow>=10.0            # screen capture (imported directly as PIL)
 keyboard>=0.13          # global hotkey trigger (may need an admin terminal on Windows)
 imageio-ffmpeg>=0.4     # bundled ffmpeg binary for screen recording (gdigrab)
 
 # UI
 PySide6>=6.6            # tray overlay
+psutil>=5.9             # the CPU/RAM readings on the reference card
 
 # Vision mode — hand-gesture control (a separate process, started by "open vision")
 opencv-python>=4.10

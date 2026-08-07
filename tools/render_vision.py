@@ -56,6 +56,11 @@ def scene(name: str, **state):
     """Build a controller in a given state and paint one frame of it."""
     v = g.VisionController()
     v.__dict__.update({k: val for k, val in state.items() if not k.startswith("_")})
+    # The "V standby · Q quit" hint only exists in standalone console mode — run()
+    # clears it when the HUD is drawn into TONY's pill, where there is no window to
+    # press keys at. Painting it here would put a key hint in every review shot for a
+    # mode that has no keys.
+    v._hint = state.get("hint", "")
     frame = backdrop()
     v._draw_hud(frame, state.get("_label", ""), 1000.0)
     return name, frame
