@@ -30,10 +30,27 @@ _vision_ready = None   # lives as long as the vision mode process; the event die
 _k32 = ctypes.WinDLL("kernel32", use_last_error=True)
 
 
+def frozen() -> bool:
+    """True when running from a PyInstaller build rather than the source tree."""
+    return getattr(sys, "frozen", False)
+
+
+def app_dir() -> Path:
+    """Where TONY's own writable files belong: settings.json, gallery/, tony.log.
+
+    From source that is the repo root. **From a build it must be the folder holding
+    the .exe, not the bundle**: PyInstaller sets `__file__` to a path inside
+    `_internal/`, so a path derived from it would hide the founder's settings inside
+    the app's guts — and be read-only the moment the app is unzipped somewhere like
+    Program Files.
+    """
+    return Path(sys.executable).parent if frozen() else Path(__file__).resolve().parent.parent
+
+
 def log_setup(name: str = "TONY") -> None:
     if sys.stdout is not None:  # real console (python app.py) — leave it alone
         return
-    log_path = Path(__file__).resolve().parent.parent / "tony.log"
+    log_path = app_dir() / "tony.log"
     f = open(log_path, "a", encoding="utf-8", buffering=1)
     # PID and name in the header: when two pythonw processes coexist, this is what
     # says which is which — vision mode runs from the same interpreter and looks

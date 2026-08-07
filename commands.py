@@ -16,6 +16,7 @@ from typing import Callable
 from urllib.parse import quote_plus
 
 from actions import apps, web, control, screen_record, volume
+from config import settings
 import vision
 
 
@@ -207,7 +208,9 @@ def _close_window(cfg):
 
 
 def gallery_dir(cfg) -> Path:
-    return Path(cfg.get("gallery_dir") or (Path(__file__).resolve().parent / "gallery"))
+    # settings.BASE_DIR, not this file's folder: in a packaged build captures must land
+    # next to the .exe, where the founder can find them, not inside the bundle.
+    return Path(cfg.get("gallery_dir") or (settings.BASE_DIR / "gallery"))
 
 
 def _capture_monitor(cfg):

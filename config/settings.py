@@ -7,8 +7,15 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent          # the repo root
-_OVERRIDE = Path(__file__).resolve().parent / "settings.json"
+import sys
+
+# Where TONY's own files live. From source that is the repo root; from a PyInstaller
+# build it is the folder holding the .exe, so settings.json sits next to the app the
+# user can see instead of inside the bundle (where it would also be read-only if the
+# app were unzipped somewhere like Program Files).
+BASE_DIR = (Path(sys.executable).parent if getattr(sys, "frozen", False)
+            else Path(__file__).resolve().parent.parent)
+_OVERRIDE = BASE_DIR / "config" / "settings.json"
 
 # ponytail: flat dict — TONY is voice command-and-control (no LLM, no TTS).
 DEFAULTS: dict = {

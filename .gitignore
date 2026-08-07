@@ -8,3 +8,8 @@ gallery/
 tools/render/
 # Local project record — the road that led here. Not for the public repo.
 archive/
+
+# PyInstaller output (see tools/build.py) — hundreds of MB, rebuilt on demand
+build/
+dist/
+*.spec

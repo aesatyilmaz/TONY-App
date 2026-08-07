@@ -7,6 +7,28 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from tools.launch import log_setup, already_running, show_requested
+
+# A packaged build has no gesture.py to run and no python.exe to run it with, so
+# vision mode re-launches THIS executable with a flag (see vision/_child_argv). That
+# has to be caught here, before Qt is imported and — critically — before
+# already_running(), which would otherwise see the parent's mutex and quietly exit.
+if "--vision-child" in sys.argv:
+    log_setup("VISION")
+    from vision.gesture import VisionController
+    try:
+        VisionController().run(embed="--embed" in sys.argv)
+    except BaseException:
+        import traceback
+        traceback.print_exc()
+        raise
+    raise SystemExit(0)
+
+if "--selftest" in sys.argv:
+    # Imports and initialises everything a packaged build can get wrong — Qt plugins,
+    # the wordmark and icon, the MediaPipe graph — then exits. No window is shown, no
+    # microphone or camera is opened, no key is pressed. Run it against the built exe.
+    os.environ["QT_QPA_PLATFORM"] = "offscreen"
+
 log_setup()  # pythonw: stdout/stderr -> tony.log
 
 from ui.win_native import enable_dpi_awareness
@@ -104,6 +126,10 @@ def main():
     # be second, and ask the live copy to reveal itself instead.
     # (Inside main(), not at import: importing app.py must stay side-effect free so
     # the wiring tests can build the real objects while TONY is running.)
+    if "--selftest" in sys.argv:
+        _selftest()
+        raise SystemExit(0)
+
     if already_running():
         print("TONY is already running — asked it to show itself instead.")
         raise SystemExit(0)
@@ -160,6 +186,31 @@ def main():
     thread.start()
 
     shutdown(worker, thread, app.exec())
+
+
+def _selftest() -> None:
+    """Prove a packaged build can actually start, without starting it.
+
+    Everything that breaks in a bundle and nowhere else is a file that is not Python:
+    the Qt platform plugins, the wordmark PNG, the .ico, the fonts, MediaPipe's models.
+    So build the real widgets offscreen, read the assets, construct the gesture
+    controller — and touch no microphone, no camera and no key.
+    """
+    app = QApplication(sys.argv)
+    tray = TonyTray(on_open_info=lambda: None)
+    info = InfoWindow(on_turn_off=lambda: None)
+    from PySide6.QtGui import QPixmap
+    for w in (tray, info):
+        w.render(QPixmap(max(w.width(), 10), max(w.height(), 10)))
+    assert _ICON.exists(), f"app icon missing from the bundle: {_ICON}"
+    from ui.glyphs import _WORDMARK
+    assert _WORDMARK.exists(), f"wordmark missing from the bundle: {_WORDMARK}"
+    from vision.gesture import VisionController
+    VisionController()
+    from commands import build_commands
+    n = len(build_commands())
+    del app
+    print(f"selftest OK — UI painted, assets found, hand model loaded, {n} commands")
 
 
 if __name__ == "__main__":

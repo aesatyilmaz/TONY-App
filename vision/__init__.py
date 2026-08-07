@@ -10,10 +10,24 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from tools.launch import wait_for_vision                       # noqa: E402
+from tools.launch import frozen, wait_for_vision               # noqa: E402
 
 _GESTURE = Path(__file__).resolve().parent / "gesture.py"
 _proc: subprocess.Popen | None = None
+
+
+def _child_argv() -> list[str]:
+    """How to start the gesture process.
+
+    From source that is `python vision/gesture.py`. **From a PyInstaller build there is
+    no gesture.py and `sys.executable` is TONY's own .exe**, so the same line would
+    launch a second copy of the whole app — a second microphone listener and a second
+    hotkey hook — instead of the camera. A frozen build re-runs itself with a flag that
+    `app.py` intercepts before any UI is built.
+    """
+    if frozen():
+        return [sys.executable, "--vision-child"]
+    return [sys.executable, str(_GESTURE)]
 
 # Where the picture goes. True means "into TONY's pill", which is right for app.py
 # and wrong for anything without a pill: main.py's console mode has no panel to draw
@@ -40,7 +54,7 @@ def open_vision() -> str:
     if is_running():
         return "Vision mode is already open, Sir."
     _proc = subprocess.Popen(
-        [sys.executable, str(_GESTURE)] + (["--embed"] if EMBED else []),
+        _child_argv() + (["--embed"] if EMBED else []),
         env={**os.environ, "PYTHONUTF8": "1"},
     )
     if not wait_for_vision(is_running):

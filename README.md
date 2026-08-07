@@ -119,10 +119,43 @@ the whole 20 seconds.
 | | |
 |---|---|
 | **OS** | Windows 10 or 11. Not portable — TONY leans on Win32 for the overlay, window control and audio. |
-| **Python** | 3.12 (3.10+ should work). Install from [python.org](https://www.python.org/downloads/) and tick **"Add python.exe to PATH"**. |
+| **Python** | 3.12 (3.10+ should work). Install from [python.org](https://www.python.org/downloads/) and tick **"Add python.exe to PATH"**. **Not needed if you use the packaged app below.** |
 | **Microphone** | Any. |
 | **Webcam** | Only for vision mode. Everything else works without one. |
 | **GPU** | Optional. NVIDIA + CUDA makes transcription faster; without it Whisper runs on the CPU. |
+| **Disk** | ~1 GB for the app, plus ~540 MB of speech models downloaded on first run. |
+
+### The packaged app — no Python needed
+
+TONY builds into an ordinary Windows application you double-click. From a clone with
+[PyInstaller](https://pyinstaller.org) installed:
+
+```powershell
+pip install pyinstaller
+python tools/build.py
+```
+
+That writes **`dist/TONY App/`** — about 800 MB, containing `TONY App.exe` and
+everything it needs. Zip that folder, unzip it anywhere on any Windows machine, and run
+the .exe. No Python, no pip, no dependencies.
+
+Check a build without launching it:
+
+```powershell
+"dist/TONY App/TONY App.exe" --selftest
+```
+
+That paints the real interface offscreen, reads every bundled asset and loads the hand
+model, then exits — no window, no microphone, no camera. Everything that breaks in a
+packaged build and nowhere else is a file that *is not Python*, and this finds a missing
+one in seconds instead of at the moment you first wave at the camera.
+
+`settings.json`, `gallery/` and `tony.log` are written **next to the .exe**, not inside
+the bundle, so the app stays a folder you can move and your settings stay somewhere you
+can find.
+
+> To run TONY from source instead — which is what you want if you intend to change it —
+> carry on below.
 
 ### 1. Get the code
 
@@ -416,6 +449,7 @@ config/  core/  actions/  ui/  vision/  tools/  tests/  docs/
 | `tools/watchdog.py` | Watches the GUI thread and dumps every thread's stack when it stalls — turns "it froze again" into something you can read. |
 | `tools/render_ui.py` | Paints every UI state offscreen to PNGs. The safe way to look at the interface. |
 | `tools/render_vision.py` | Paints every HUD state onto a synthetic frame with a synthetic hand. **The camera is somebody's live desktop — nobody gets to "just run it and look."** Also runs as a paint gate in the tests. |
+| `tools/build.py` | Packages everything into `dist/TONY App/` with PyInstaller. Carries the list of what must be bundled by hand (assets, fonts, MediaPipe's models) and what must be kept out (the ML stacks MediaPipe's optional imports would otherwise drag in — 800 MB of them). |
 
 ---
 
