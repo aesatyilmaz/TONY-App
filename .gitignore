@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+config/settings.json
+*.log
+gallery/
+tools/render/
+# Local project record — the road that led here. Not for the public repo.
+archive/

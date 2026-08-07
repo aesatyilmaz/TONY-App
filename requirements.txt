@@ -1,0 +1,30 @@
+# TONY App — 100% local voice command-and-control. Windows, Python 3.12.
+#   pip install -r requirements.txt
+
+# Voice pipeline
+vosk>=0.3.45            # always-on wake word ("Tony") — light, CPU
+faster-whisper>=1.0     # command speech-to-text, runs only after wake
+sounddevice>=0.5        # microphone capture
+numpy>=1.26             # audio buffers
+
+# Command routing & execution
+rapidfuzz>=3.0          # fuzzy transcript -> command matching (no model, deterministic)
+pyautogui>=0.9.54       # hotkeys / media keys / scroll
+pycaw>=20240210         # exact master-volume control ("volume down 30" means 30)
+Pillow>=10.0            # screen capture (imported directly as PIL)
+keyboard>=0.13          # global hotkey trigger (may need an admin terminal on Windows)
+imageio-ffmpeg>=0.4     # bundled ffmpeg binary for screen recording (gdigrab)
+
+# UI
+PySide6>=6.6            # tray overlay
+
+# Vision mode — hand-gesture control (a separate process, started by "open vision")
+opencv-python>=4.10
+mediapipe>=0.10
+
+# NOT listed on purpose:
+#   torch — optional. faster-whisper uses it only to detect CUDA; it falls back to CPU
+#           without it. Installing it here could overwrite a working pinned CUDA build
+#           (this machine: torch 2.3.1+cu121 / torchvision 0.18.1). Install it yourself
+#           if you want GPU STT.
+#   pytest — dev only, for `python -m pytest tests/`.
