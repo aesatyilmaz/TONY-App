@@ -87,6 +87,28 @@ vision mode is.
 
 ---
 
+## Before you install
+
+> [!IMPORTANT]
+> **TONY is still being built.** It is used every day by the person who wrote it, and
+> it works — but it is a young project, not a finished product. Expect rough edges:
+> a command that mishears you, a gesture that does not register, something that
+> behaves differently on your machine than on mine.
+>
+> Two things worth knowing before you try it:
+>
+> - **TONY presses real keys.** A misheard command acts on whatever window you are
+>   actually using, including commands like "close window". Treat it like a keyboard
+>   someone else is typing on.
+> - **Things will change.** Commands, gestures and settings may be renamed or replaced
+>   as it improves.
+>
+> If something breaks, please
+> [open an issue](https://github.com/aesatyilmaz/TONY-App/issues) — a description of
+> what you said and what happened is genuinely useful.
+
+---
+
 ## Setup
 
 You need **Windows 10 or 11**, a **microphone**, and **Python 3.10+**
