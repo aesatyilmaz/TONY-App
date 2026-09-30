@@ -48,7 +48,10 @@ def app_dir() -> Path:
 
 
 def log_setup(name: str = "TONY") -> None:
-    if sys.stdout is not None:  # real console (python app.py) — leave it alone
+    if sys.stdout is not None:  # real console (python app.py) — keep it, but a redirected
+        # stdout is cp1252 on Windows and dies on the first "→" (killed the voice thread)
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
         return
     log_path = app_dir() / "tony.log"
     f = open(log_path, "a", encoding="utf-8", buffering=1)
