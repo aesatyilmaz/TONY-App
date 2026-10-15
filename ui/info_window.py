@@ -22,7 +22,8 @@ out of things that cannot wedge:
 Qt.Tool keeps it out of the taskbar and out of alt-tab, which is the only other
 thing Qt.Popup was buying.
 
-Read-only by design (founder: "eklemeli çıkarmalı değil, sadece info şeklinde") —
+Read-only by design — the founder asked for information only, nothing to add or
+remove —
 no inputs, no add/remove, no click-to-run. One control only, at the very top:
 Turn off TONY.
 

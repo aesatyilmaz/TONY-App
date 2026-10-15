@@ -156,7 +156,7 @@ def test_the_popup_stays_silent_while_the_pill_is_hidden():
 
 
 def test_the_popup_comes_out_of_the_pill_and_goes_back_into_it():
-    """The founder's complaint: "bir anda ekrana çıkıyor ve bir anda gidiyor". The
+    """The founder's complaint: it hit the screen all at once and left the same way. The
     entrance already faded; the exit was a bare hide() — the popup was deleted from
     the screen mid-sentence. Both ends must be a MOVE as well as a fade: a pure
     opacity change with no travel reads as a flicker, not as an object arriving."""

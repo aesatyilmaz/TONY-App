@@ -51,7 +51,8 @@ _POPUP_MS = 2200
 _TOP_GAP = 40         # screen top → pill (founder wants it sitting a little lower)
 DROP = 8              # pill bottom → whatever hangs off it (popup caret, panel caret)
 
-# Popup motion (founder: "bir anda ekrana çıkıyor ve bir anda gidiyor").
+# Popup motion. The founder's complaint: it hit the screen all at once and left
+# the same way.
 # _POP_TRAVEL is DROP + 2: at zero opacity the caret tip sits 2px INSIDE the pill, so
 # the popup is never a thing that materialises in place — it comes out from under the
 # pill and goes back into it. Out is slower than in, same reasoning as the pill's fade.
@@ -77,7 +78,8 @@ _POP_IN_MS, _POP_OUT_MS, _POP_SWAP_MS = 260, 300, 130
 #   glass  thinner, flatter        → solid, with the breathing gold glow
 # (Ring weight grows inward — see GlassSurface.set_tone — so the gutter is untouched.)
 #
-# Idle is ASLEEP, not ABSENT (founder: "pasifken de altın border olsun, ince").
+# Idle is ASLEEP, not ABSENT — the founder asked for a thin gold border even when
+# nothing is happening.
 # The old (201,162,39,55) hairline was a smudge — at 1px, 22% of a LIGHT gold over a
 # near-white fill is indistinguishable from the edge of the cream. So idle uses the
 # DEEP gold at 69%: same 1px weight, but dark enough against the fill to read as a

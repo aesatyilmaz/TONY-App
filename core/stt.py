@@ -60,7 +60,7 @@ def record_utterance(max_seconds: float, silence_seconds: float,
     caller's own idle clock can only tick between calls, so without this a "five
     seconds of silence" rule really means "the next check after eight".
     """
-    block = 4000  # 0.25 sn
+    block = 4000  # 0.25 s
     q: queue.Queue[np.ndarray] = queue.Queue()
 
     def cb(indata, frames, time_, status):
